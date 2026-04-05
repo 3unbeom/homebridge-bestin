@@ -4,7 +4,6 @@ const BestinApi = require('./api');
 const LightAccessory = require('./accessories/light');
 const OutletAccessory = require('./accessories/outlet');
 const ThermostatAccessory = require('./accessories/thermostat');
-const FanAccessory = require('./accessories/fan');
 
 const PLUGIN_NAME = 'homebridge-bestin';
 const PLATFORM_NAME = 'BestinPlatform';
@@ -96,15 +95,6 @@ class BestinPlatform {
         }
       }
 
-      // Ventilator
-      if (this.config.ventilator) {
-        deviceConfigs.push({
-          type: 'fan',
-          uniqueId: 'ventil',
-          displayName: '환기장치',
-        });
-      }
-
       // Register accessories
       const activeIds = new Set();
       for (const dc of deviceConfigs) {
@@ -152,9 +142,6 @@ class BestinPlatform {
         break;
       case 'thermostat':
         new ThermostatAccessory(this, accessory, dc);
-        break;
-      case 'fan':
-        new FanAccessory(this, accessory, dc);
         break;
     }
   }
