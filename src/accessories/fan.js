@@ -8,7 +8,7 @@ class FanAccessory {
     this.log = platform.log;
     this.api = platform.bestinApi;
     this.isOn = false;
-    this.speed = 0; // 0=off, 33=low, 66=mid, 99=high
+    this.speed = 33; // 33=low, 66=mid, 99=high
 
     const Service = platform.api.hap.Service;
     const Characteristic = platform.api.hap.Characteristic;
@@ -34,7 +34,6 @@ class FanAccessory {
           } else {
             await this.api.controlVentilator('off');
             this.isOn = false;
-            this.speed = 0;
           }
         } catch (e) {
           this.log.error('환기 제어 실패:', e.message);
@@ -43,14 +42,12 @@ class FanAccessory {
       });
 
     service.getCharacteristic(Characteristic.RotationSpeed)
-      .setProps({ minValue: 0, maxValue: 99, minStep: 33 })
+      .setProps({ minValue: 33, maxValue: 99, minStep: 33 })
       .onGet(() => this.speed)
       .onSet(async (value) => {
         try {
           let action;
-          if (value <= 0) {
-            action = 'off';
-          } else if (value <= 33) {
+          if (value <= 33) {
             action = 'low';
           } else if (value <= 66) {
             action = 'mid';
@@ -58,7 +55,6 @@ class FanAccessory {
             action = 'high';
           }
           await this.api.controlVentilator(action);
-          this.isOn = action !== 'off';
           this.speed = value;
         } catch (e) {
           this.log.error('환기 속도 설정 실패:', e.message);
@@ -82,7 +78,6 @@ class FanAccessory {
         if (status === 'low') this.speed = 33;
         else if (status === 'mid') this.speed = 66;
         else if (status === 'high') this.speed = 99;
-        else this.speed = 0;
 
         this.service.updateCharacteristic(
           this.Characteristic.Active,
