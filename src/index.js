@@ -88,7 +88,7 @@ class BestinPlatform {
           const unitNum = isLivingRoom ? 'room1' : `room${roomNum}`;
           deviceConfigs.push({
             type: 'thermostat',
-            uniqueId: `thermostat_${unitNum}`,
+            uniqueId: `thermostat_${isLivingRoom ? 'living' : `room${roomNum}`}`,
             displayName: `${roomName} 난방`,
             unitNum,
           });
