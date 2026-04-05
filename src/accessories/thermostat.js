@@ -67,7 +67,8 @@ class ThermostatAccessory {
       });
 
     service.getCharacteristic(Characteristic.TemperatureDisplayUnits)
-      .setValue(Characteristic.TemperatureDisplayUnits.CELSIUS);
+      .onGet(() => Characteristic.TemperatureDisplayUnits.CELSIUS)
+      .onSet(() => {});
 
     this.service = service;
     this.Characteristic = Characteristic;
