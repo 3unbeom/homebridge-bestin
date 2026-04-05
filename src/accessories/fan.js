@@ -28,11 +28,11 @@ class FanAccessory {
       .onSet(async (value) => {
         try {
           if (value === Characteristic.Active.ACTIVE) {
-            let action;
-            if (this.speed <= 33) action = 'low';
-            else if (this.speed <= 66) action = 'mid';
-            else action = 'high';
-            await this.api.controlVentilator(action);
+            await this.api.controlVentilator('on');
+            if (this.speed > 33) {
+              const action = this.speed <= 66 ? 'mid' : 'high';
+              await this.api.controlVentilator(action);
+            }
             this.isOn = true;
           } else {
             await this.api.controlVentilator('off');
@@ -49,6 +49,10 @@ class FanAccessory {
       .onGet(() => this.speed)
       .onSet(async (value) => {
         try {
+          if (!this.isOn) {
+            await this.api.controlVentilator('on');
+            this.isOn = true;
+          }
           let action;
           if (value <= 33) {
             action = 'low';
@@ -58,7 +62,6 @@ class FanAccessory {
             action = 'high';
           }
           await this.api.controlVentilator(action);
-          this.isOn = true;
           this.speed = value;
         } catch (e) {
           this.log.error('환기 속도 설정 실패:', e.message);
