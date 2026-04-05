@@ -1,0 +1,97 @@
+{
+  "pluginAlias": "BestinPlatform",
+  "pluginType": "platform",
+  "singular": true,
+  "headerDisplay": "BESTIN IOT 스마트홈 (아이파크) Homebridge 플러그인",
+  "schema": {
+    "type": "object",
+    "properties": {
+      "name": {
+        "title": "플랫폼 이름",
+        "type": "string",
+        "default": "BESTIN"
+      },
+      "hostIp": {
+        "title": "원격제어 Host IP",
+        "type": "string",
+        "required": true,
+        "description": "i-parklife.com에서 확인한 원격제어 서버 IP"
+      },
+      "userId": {
+        "title": "계정 ID",
+        "type": "string",
+        "required": true
+      },
+      "userPw": {
+        "title": "계정 비밀번호",
+        "type": "string",
+        "required": true
+      },
+      "pollInterval": {
+        "title": "상태 조회 주기 (초)",
+        "type": "integer",
+        "default": 10,
+        "minimum": 5
+      },
+      "rooms": {
+        "title": "방 설정",
+        "type": "array",
+        "items": {
+          "type": "object",
+          "properties": {
+            "name": {
+              "title": "방 이름",
+              "type": "string"
+            },
+            "roomNumber": {
+              "title": "방 번호 (1-5)",
+              "type": "integer",
+              "minimum": 1,
+              "maximum": 5
+            },
+            "livingRoom": {
+              "title": "거실 여부",
+              "type": "boolean",
+              "default": false
+            },
+            "lights": {
+              "title": "조명 개수",
+              "type": "integer",
+              "default": 0
+            },
+            "outlets": {
+              "title": "콘센트 개수",
+              "type": "integer",
+              "default": 0
+            },
+            "thermostat": {
+              "title": "난방 사용",
+              "type": "boolean",
+              "default": false
+            }
+          }
+        }
+      },
+      "ventilator": {
+        "title": "환기장치 사용",
+        "type": "boolean",
+        "default": true
+      },
+      "gasValve": {
+        "title": "가스밸브 사용",
+        "type": "boolean",
+        "default": true
+      },
+      "doorLock": {
+        "title": "도어락 (상태만 조회)",
+        "type": "boolean",
+        "default": false
+      },
+      "awayMode": {
+        "title": "외출모드 사용",
+        "type": "boolean",
+        "default": false
+      }
+    }
+  }
+}

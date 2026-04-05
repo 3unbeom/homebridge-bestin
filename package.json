@@ -1,0 +1,29 @@
+{
+  "name": "homebridge-bestin",
+  "version": "1.0.0",
+  "description": "Homebridge plugin for BESTIN IOT smart home (IPARK apartments)",
+  "main": "src/index.js",
+  "keywords": [
+    "homebridge-plugin",
+    "bestin",
+    "ipark",
+    "smart-home"
+  ],
+  "author": "3unbeom",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/3unbeom/homebridge-bestin.git"
+  },
+  "bugs": {
+    "url": "https://github.com/3unbeom/homebridge-bestin/issues"
+  },
+  "engines": {
+    "homebridge": ">=1.0.0",
+    "node": ">=18.0.0"
+  },
+  "dependencies": {
+    "bcryptjs": "^2.4.3"
+  },
+  "license": "MIT",
+  "type": "commonjs"
+}
