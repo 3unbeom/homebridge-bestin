@@ -8,7 +8,7 @@ class FanAccessory {
     this.log = platform.log;
     this.api = platform.bestinApi;
     this.isOn = false;
-    this.speed = 0; // 0=off, 1=low(33), 2=mid(66), 3=high(100)
+    this.speed = 0; // 0=off, 33=low, 66=mid, 99=high
 
     const Service = platform.api.hap.Service;
     const Characteristic = platform.api.hap.Characteristic;
@@ -43,7 +43,7 @@ class FanAccessory {
       });
 
     service.getCharacteristic(Characteristic.RotationSpeed)
-      .setProps({ minValue: 0, maxValue: 100, minStep: 33 })
+      .setProps({ minValue: 0, maxValue: 99, minStep: 33 })
       .onGet(() => this.speed)
       .onSet(async (value) => {
         try {
@@ -81,7 +81,7 @@ class FanAccessory {
         this.isOn = status !== 'off';
         if (status === 'low') this.speed = 33;
         else if (status === 'mid') this.speed = 66;
-        else if (status === 'high') this.speed = 100;
+        else if (status === 'high') this.speed = 99;
         else this.speed = 0;
 
         this.service.updateCharacteristic(
