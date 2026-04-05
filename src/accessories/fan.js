@@ -42,7 +42,7 @@ class FanAccessory {
       });
 
     service.getCharacteristic(Characteristic.RotationSpeed)
-      .setProps({ minValue: 33, maxValue: 99, minStep: 33 })
+      .setProps({ minValue: 0, maxValue: 99, minStep: 33 })
       .onGet(() => this.speed)
       .onSet(async (value) => {
         try {
