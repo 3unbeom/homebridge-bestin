@@ -77,21 +77,6 @@
         "type": "boolean",
         "default": true
       },
-      "gasValve": {
-        "title": "가스밸브 사용",
-        "type": "boolean",
-        "default": true
-      },
-      "doorLock": {
-        "title": "도어락 (상태만 조회)",
-        "type": "boolean",
-        "default": false
-      },
-      "awayMode": {
-        "title": "외출모드 사용",
-        "type": "boolean",
-        "default": false
-      }
     }
   }
 }
