@@ -53,57 +53,67 @@ class BestinPlatform {
 
     try {
       this.log.info('디바이스 검색 시작...');
-      const rooms = this.config.rooms || [];
       const deviceConfigs = [];
 
-      for (const room of rooms) {
-        const roomNum = room.roomNumber;
-        const roomName = room.name || `방${roomNum}`;
-        const isLivingRoom = room.livingRoom || false;
-
-        // Lights
-        for (let i = 1; i <= (room.lights || 0); i++) {
+      // Living room (lights only, no roomNum)
+      const livingRoom = this.config.livingRoom;
+      if (livingRoom) {
+        const livingName = livingRoom.name || '거실';
+        for (const num of livingRoom.lights || []) {
           deviceConfigs.push({
             type: 'light',
-            uniqueId: `light_${isLivingRoom ? 'living' : `room${roomNum}`}_switch${i}`,
-            displayName: `${roomName} 조명 ${i}`,
-            roomNum: isLivingRoom ? null : roomNum,
-            switchNum: `switch${i}`,
-            isLivingRoom,
+            uniqueId: `light_living_switch${num}`,
+            displayName: `${livingName} 조명 ${num}`,
+            roomNum: null,
+            switchNum: `switch${num}`,
+          });
+        }
+      }
+
+      // Rooms
+      const rooms = this.config.rooms || [];
+      for (let i = 0; i < rooms.length; i++) {
+        const room = rooms[i];
+        const roomNum = room.roomNumber || (i + 1);
+        const roomName = room.name || `방${roomNum}`;
+
+        // Lights
+        for (const num of room.lights || []) {
+          deviceConfigs.push({
+            type: 'light',
+            uniqueId: `light_room${roomNum}_switch${num}`,
+            displayName: `${roomName} 조명 ${num}`,
+            roomNum,
+            switchNum: `switch${num}`,
           });
         }
 
         // Outlets
-        for (let i = 1; i <= (room.outlets || 0); i++) {
+        for (const num of room.outlets || []) {
           deviceConfigs.push({
             type: 'outlet',
-            uniqueId: `outlet_${isLivingRoom ? 'living' : `room${roomNum}`}_switch${i}`,
-            displayName: `${roomName} 콘센트 ${i}`,
-            roomNum: isLivingRoom ? 1 : roomNum,
-            switchNum: `switch${i}`,
+            uniqueId: `outlet_room${roomNum}_switch${num}`,
+            displayName: `${roomName} 콘센트 ${num}`,
+            roomNum,
+            switchNum: `switch${num}`,
           });
         }
 
         // Thermostat
-        if (room.thermostat) {
-          const unitNum = isLivingRoom ? 'room1' : `room${roomNum}`;
-          deviceConfigs.push({
-            type: 'thermostat',
-            uniqueId: `thermostat_${isLivingRoom ? 'living' : `room${roomNum}`}`,
-            displayName: `${roomName} 난방`,
-            unitNum,
-          });
-        }
+        deviceConfigs.push({
+          type: 'thermostat',
+          uniqueId: `thermostat_room${roomNum}`,
+          displayName: `${roomName} 난방`,
+          unitNum: `room${roomNum}`,
+        });
       }
 
       // Ventilator
-      if (this.config.ventilator) {
-        deviceConfigs.push({
-          type: 'fan',
-          uniqueId: 'ventil',
-          displayName: '환기장치',
-        });
-      }
+      deviceConfigs.push({
+        type: 'fan',
+        uniqueId: 'ventil',
+        displayName: '환기장치',
+      });
 
       // Register accessories
       const activeIds = new Set();

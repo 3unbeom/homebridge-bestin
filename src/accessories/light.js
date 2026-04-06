@@ -28,7 +28,7 @@ class LightAccessory {
         const action = value ? 'on' : 'off';
         try {
           await this.api.controlLight(
-            config.isLivingRoom ? null : config.roomNum,
+            config.roomNum,
             config.switchNum,
             action,
           );
@@ -50,7 +50,7 @@ class LightAccessory {
   async pollStatus() {
     try {
       const statuses = await this.api.getLightStatus(
-        this.config.isLivingRoom ? null : this.config.roomNum,
+        this.config.roomNum,
       );
       const status = statuses[this.config.switchNum];
       if (status !== undefined) {
