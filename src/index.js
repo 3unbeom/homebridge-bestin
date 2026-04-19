@@ -59,7 +59,8 @@ class BestinPlatform {
       const livingRoom = this.config.livingRoom;
       if (livingRoom) {
         const livingName = livingRoom.name || '거실';
-        for (const num of livingRoom.lights || []) {
+        const livingLights = livingRoom.lights || 0;
+        for (let num = 1; num <= livingLights; num++) {
           deviceConfigs.push({
             type: 'light',
             uniqueId: `light_living_switch${num}`,
@@ -78,7 +79,8 @@ class BestinPlatform {
         const roomName = room.name || `방${roomNum}`;
 
         // Lights
-        for (const num of room.lights || []) {
+        const lightCount = room.lights || 0;
+        for (let num = 1; num <= lightCount; num++) {
           deviceConfigs.push({
             type: 'light',
             uniqueId: `light_room${roomNum}_switch${num}`,
@@ -89,7 +91,8 @@ class BestinPlatform {
         }
 
         // Outlets
-        for (const num of room.outlets || []) {
+        const outletCount = room.outlets || 0;
+        for (let num = 1; num <= outletCount; num++) {
           deviceConfigs.push({
             type: 'outlet',
             uniqueId: `outlet_room${roomNum}_switch${num}`,

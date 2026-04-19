@@ -15,7 +15,7 @@
         "title": "원격제어 Host IP",
         "type": "string",
         "required": true,
-        "description": "i-parklife.com에서 확인한 원격제어 서버 IP"
+        "description": "www.i-parklife.com에서 확인한 원격제어 서버 IP"
       },
       "userId": {
         "title": "계정 ID",
@@ -33,6 +33,23 @@
         "default": 10,
         "minimum": 5
       },
+      "livingRoom": {
+        "title": "거실 설정",
+        "type": "object",
+        "properties": {
+          "name": {
+            "title": "거실 이름",
+            "type": "string",
+            "default": "거실"
+          },
+          "lights": {
+            "title": "조명 개수",
+            "type": "integer",
+            "default": 0,
+            "minimum": 0
+          }
+        }
+      },
       "rooms": {
         "title": "방 설정",
         "type": "array",
@@ -44,38 +61,25 @@
               "type": "string"
             },
             "roomNumber": {
-              "title": "방 번호 (1-5)",
+              "title": "방 번호 (1-5, 비우면 자동)",
               "type": "integer",
               "minimum": 1,
               "maximum": 5
             },
-            "livingRoom": {
-              "title": "거실 여부",
-              "type": "boolean",
-              "default": false
-            },
             "lights": {
               "title": "조명 개수",
               "type": "integer",
-              "default": 0
+              "default": 0,
+              "minimum": 0
             },
             "outlets": {
               "title": "콘센트 개수",
               "type": "integer",
-              "default": 0
-            },
-            "thermostat": {
-              "title": "난방 사용",
-              "type": "boolean",
-              "default": false
+              "default": 0,
+              "minimum": 0
             }
           }
         }
-      },
-      "ventilator": {
-        "title": "환기장치 사용",
-        "type": "boolean",
-        "default": true
       }
     }
   }
