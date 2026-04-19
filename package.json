@@ -1,6 +1,6 @@
 {
   "name": "homebridge-bestin",
-  "version": "1.0.14",
+  "version": "1.0.15",
   "description": "Homebridge plugin for BESTIN IOT smart home (IPARK apartments)",
   "main": "src/index.js",
   "keywords": [
