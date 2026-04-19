@@ -41,10 +41,6 @@ class LightAccessory {
 
     this.service = service;
     this.Characteristic = Characteristic;
-
-    // Poll status
-    // Initial status fetch on startup
-    this.pollStatus();
   }
 
   async pollStatus() {

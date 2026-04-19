@@ -6,11 +6,6 @@
   "schema": {
     "type": "object",
     "properties": {
-      "name": {
-        "title": "플랫폼 이름",
-        "type": "string",
-        "default": "BESTIN"
-      },
       "hostIp": {
         "title": "원격제어 Host IP",
         "type": "string",
@@ -27,12 +22,6 @@
         "type": "string",
         "required": true
       },
-      "pollInterval": {
-        "title": "상태 조회 주기 (초)",
-        "type": "integer",
-        "default": 10,
-        "minimum": 5
-      },
       "livingRoom": {
         "title": "거실 설정",
         "type": "object",
@@ -45,7 +34,7 @@
           "lights": {
             "title": "조명 개수",
             "type": "integer",
-            "default": 0,
+            "default": 3,
             "minimum": 0
           }
         }
@@ -60,22 +49,16 @@
               "title": "방 이름",
               "type": "string"
             },
-            "roomNumber": {
-              "title": "방 번호 (1-5, 비우면 자동)",
-              "type": "integer",
-              "minimum": 1,
-              "maximum": 5
-            },
             "lights": {
               "title": "조명 개수",
               "type": "integer",
-              "default": 0,
+              "default": 2,
               "minimum": 0
             },
             "outlets": {
               "title": "콘센트 개수",
               "type": "integer",
-              "default": 0,
+              "default": 2,
               "minimum": 0
             }
           }

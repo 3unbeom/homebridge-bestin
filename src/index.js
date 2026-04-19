@@ -5,6 +5,7 @@ const LightAccessory = require('./accessories/light');
 const OutletAccessory = require('./accessories/outlet');
 const ThermostatAccessory = require('./accessories/thermostat');
 const FanAccessory = require('./accessories/fan');
+const { startPolling } = require('./poll');
 
 const PLUGIN_NAME = 'homebridge-bestin';
 const PLATFORM_NAME = 'BestinPlatform';
@@ -75,7 +76,7 @@ class BestinPlatform {
       const rooms = this.config.rooms || [];
       for (let i = 0; i < rooms.length; i++) {
         const room = rooms[i];
-        const roomNum = room.roomNumber || (i + 1);
+        const roomNum = i + 1;
         const roomName = room.name || `방${roomNum}`;
 
         // Lights
@@ -120,6 +121,7 @@ class BestinPlatform {
 
       // Register accessories
       const activeIds = new Set();
+      const pollGroups = new Map();
       for (const dc of deviceConfigs) {
         const uuid = this.api.hap.uuid.generate(dc.uniqueId);
         activeIds.add(uuid);
@@ -133,7 +135,13 @@ class BestinPlatform {
         }
 
         accessory.context.device = dc;
-        this.setupAccessory(accessory, dc);
+        const instance = this.setupAccessory(accessory, dc);
+
+        if (instance) {
+          const key = this._pollGroupKey(dc);
+          if (!pollGroups.has(key)) pollGroups.set(key, []);
+          pollGroups.get(key).push(instance);
+        }
 
         if (isNew) {
           this.api.registerPlatformAccessories(PLUGIN_NAME, PLATFORM_NAME, [accessory]);
@@ -148,6 +156,16 @@ class BestinPlatform {
         this.log.info(`오래된 액세서리 ${stale.length}개 제거`);
       }
 
+      // Schedule grouped polling: each group polls on its own jittered interval
+      // so same-room same-type accessories share the API 5s cache.
+      for (const instances of pollGroups.values()) {
+        startPolling(() => {
+          for (const inst of instances) {
+            inst.pollStatus();
+          }
+        });
+      }
+
       this.log.info(`총 ${deviceConfigs.length}개 디바이스 설정 완료`);
     } catch (e) {
       this.log.error('디바이스 검색 중 오류:', e.message);
@@ -158,17 +176,22 @@ class BestinPlatform {
   setupAccessory(accessory, dc) {
     switch (dc.type) {
       case 'light':
-        new LightAccessory(this, accessory, dc);
-        break;
+        return new LightAccessory(this, accessory, dc);
       case 'outlet':
-        new OutletAccessory(this, accessory, dc);
-        break;
+        return new OutletAccessory(this, accessory, dc);
       case 'thermostat':
-        new ThermostatAccessory(this, accessory, dc);
-        break;
+        return new ThermostatAccessory(this, accessory, dc);
       case 'fan':
-        new FanAccessory(this, accessory, dc);
-        break;
+        return new FanAccessory(this, accessory, dc);
     }
+    return null;
+  }
+
+  _pollGroupKey(dc) {
+    if (dc.type === 'light' || dc.type === 'outlet') {
+      return `${dc.type}:${dc.roomNum || 'living'}`;
+    }
+    if (dc.type === 'thermostat') return `thermostat:${dc.unitNum}`;
+    return 'fan';
   }
 }

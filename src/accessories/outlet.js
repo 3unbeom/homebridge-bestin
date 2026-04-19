@@ -41,7 +41,6 @@ class OutletAccessory {
 
     this.service = service;
     this.Characteristic = Characteristic;
-    this.pollStatus();
   }
 
   async pollStatus() {
