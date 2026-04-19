@@ -41,6 +41,7 @@
       },
       "rooms": {
         "title": "방 설정",
+        "description": "위에서부터 순서대로 방 1, 방 2, ... 로 매핑됩니다.",
         "type": "array",
         "items": {
           "type": "object",
