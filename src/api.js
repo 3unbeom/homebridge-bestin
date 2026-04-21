@@ -11,7 +11,7 @@ class BestinApi {
     this.phpSessionId = null;
     this._cache = {};
     this._cacheTTL = 5000; // 5 second cache to deduplicate concurrent polls
-    this._diagLoggedExpired = false; // one-shot diag dump on first session-expired
+    this._loginPromise = null; // in-flight login; shared across concurrent callers
   }
 
   _getCacheKey(method, params) {
@@ -30,31 +30,31 @@ class BestinApi {
     this._cache[key] = { value, time: Date.now() };
   }
 
-  async login() {
+  login() {
+    // Coalesce concurrent login calls so a burst of expired requests only
+    // triggers one actual re-login on the server.
+    if (!this._loginPromise) {
+      this._loginPromise = this._performLogin().finally(() => {
+        this._loginPromise = null;
+      });
+    }
+    return this._loginPromise;
+  }
+
+  async _performLogin() {
     const url = `http://${this.hostIp}/webapp/data/getLoginWebApp.php?devce=WA&login_ide=${encodeURIComponent(this.userId)}&login_pwd=${encodeURIComponent(this.userPw)}`;
     const response = await this._httpGet(url, {}, true);
 
-    // Extract PHPSESSID from Set-Cookie header
     const cookies = response.headers['set-cookie'];
     if (cookies) {
       for (const cookie of cookies) {
         const match = cookie.match(/PHPSESSID=([a-z0-9]+)/i);
         if (match) {
           this.phpSessionId = match[1];
-          this.log.info('[DIAG] PHPSESSID from cookie:', this.phpSessionId);
+          this.log.debug('PHPSESSID 획득');
           return;
         }
       }
-    }
-
-    this.log.info('[DIAG] login Set-Cookie missing. body snippet:', (response.body || '').slice(0, 300).replace(/\s+/g, ' '));
-
-    // Fallback: try to extract from response body
-    const bodyMatch = response.body.match(/[0-9a-z]{32}/);
-    if (bodyMatch) {
-      this.phpSessionId = bodyMatch[0];
-      this.log.info('[DIAG] PHPSESSID from body fallback (likely garbage):', this.phpSessionId);
-      return;
     }
 
     throw new Error('PHPSESSID를 얻을 수 없습니다. 계정 정보를 확인하세요.');
@@ -64,29 +64,22 @@ class BestinApi {
     return `PHPSESSID=${this.phpSessionId}; user_id=${this.userId}`;
   }
 
-  // Re-login if session expired (response contains login page or fail without valid data)
+  // Session is valid whenever the server returns the BESTIN XML envelope (<imap>),
+  // regardless of result="ok|fail". Session expiration returns an HTML login page
+  // (typically the getLoginWebApp.php form), not an XML reply.
   _isSessionExpired(body) {
-    return !this.phpSessionId
-      || body.includes('login_ide')
-      || body.includes('getLoginWebApp')
-      || (body.includes('result="fail"') && !body.includes('unit_status'));
+    if (!this.phpSessionId) return true;
+    if (body.includes('<imap')) return false;
+    return body.includes('getLoginWebApp') || body.includes('login_pwd');
   }
 
   async _requestWithRetry(url, headers) {
     let response = await this._httpGet(url, headers);
     if (this._isSessionExpired(response.body)) {
-      if (!this._diagLoggedExpired) {
-        this._diagLoggedExpired = true;
-        this.log.info('[DIAG] first expired-looking response. url:', url);
-        this.log.info('[DIAG] body snippet:', (response.body || '').slice(0, 400).replace(/\s+/g, ' '));
-      }
       this.log.info('세션 만료 감지, 재로그인...');
       await this.login();
       headers.Cookie = this._getCookieHeader();
       response = await this._httpGet(url, headers);
-      if (this._isSessionExpired(response.body)) {
-        this.log.warn('[DIAG] retry STILL expired-looking. retry body snippet:', (response.body || '').slice(0, 400).replace(/\s+/g, ' '));
-      }
     }
     return response;
   }
@@ -131,6 +124,12 @@ class BestinApi {
       Cookie: this._getCookieHeader(),
       'User-Agent': 'Mozilla/5.0 Chrome',
     });
+
+    // Surface server-side failures so the accessory's onSet reports an error
+    // to HomeKit instead of silently "succeeding".
+    if (/result\s*=\s*"fail"/.test(response.body)) {
+      throw new Error(`서버가 제어를 거부함 (${reqName})`);
+    }
 
     return response.body;
   }

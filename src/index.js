@@ -156,12 +156,14 @@ class BestinPlatform {
         this.log.info(`오래된 액세서리 ${stale.length}개 제거`);
       }
 
-      // TEMP: periodic polling disabled to verify session-loop hypothesis.
-      // Only fetch status once at startup (pre-v1.0.14 behavior).
+      // Schedule grouped polling: each group polls on its own jittered interval
+      // so same-room same-type accessories share the API 5s cache.
       for (const instances of pollGroups.values()) {
-        for (const inst of instances) {
-          inst.pollStatus();
-        }
+        startPolling(() => {
+          for (const inst of instances) {
+            inst.pollStatus();
+          }
+        });
       }
 
       this.log.info(`총 ${deviceConfigs.length}개 디바이스 설정 완료`);
