@@ -11,6 +11,7 @@ class BestinApi {
     this.phpSessionId = null;
     this._cache = {};
     this._cacheTTL = 5000; // 5 second cache to deduplicate concurrent polls
+    this._diagLoggedExpired = false; // one-shot diag dump on first session-expired
   }
 
   _getCacheKey(method, params) {
@@ -40,17 +41,19 @@ class BestinApi {
         const match = cookie.match(/PHPSESSID=([a-z0-9]+)/i);
         if (match) {
           this.phpSessionId = match[1];
-          this.log.debug('PHPSESSID 획득:', this.phpSessionId);
+          this.log.info('[DIAG] PHPSESSID from cookie:', this.phpSessionId);
           return;
         }
       }
     }
 
+    this.log.info('[DIAG] login Set-Cookie missing. body snippet:', (response.body || '').slice(0, 300).replace(/\s+/g, ' '));
+
     // Fallback: try to extract from response body
     const bodyMatch = response.body.match(/[0-9a-z]{32}/);
     if (bodyMatch) {
       this.phpSessionId = bodyMatch[0];
-      this.log.debug('PHPSESSID (body):', this.phpSessionId);
+      this.log.info('[DIAG] PHPSESSID from body fallback (likely garbage):', this.phpSessionId);
       return;
     }
 
@@ -72,10 +75,18 @@ class BestinApi {
   async _requestWithRetry(url, headers) {
     let response = await this._httpGet(url, headers);
     if (this._isSessionExpired(response.body)) {
+      if (!this._diagLoggedExpired) {
+        this._diagLoggedExpired = true;
+        this.log.info('[DIAG] first expired-looking response. url:', url);
+        this.log.info('[DIAG] body snippet:', (response.body || '').slice(0, 400).replace(/\s+/g, ' '));
+      }
       this.log.info('세션 만료 감지, 재로그인...');
       await this.login();
       headers.Cookie = this._getCookieHeader();
       response = await this._httpGet(url, headers);
+      if (this._isSessionExpired(response.body)) {
+        this.log.warn('[DIAG] retry STILL expired-looking. retry body snippet:', (response.body || '').slice(0, 400).replace(/\s+/g, ' '));
+      }
     }
     return response;
   }
